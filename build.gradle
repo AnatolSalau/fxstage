@@ -1,0 +1,110 @@
+import org.gradle.internal.os.OperatingSystem
+
+plugins {
+  id 'java-library'
+  id 'maven-publish'
+  id 'signing'
+  id "io.franzbecker.gradle-lombok" version "5.0.0"
+}
+
+group = "io.github.micheljung"
+version "${version}"
+description = "Modern dark theme for JavaFX applications"
+
+project.ext.javaFxPlatform = "${javaFxPlatform}"
+
+allprojects {
+  version "${version}"
+  sourceCompatibility = JavaVersion.VERSION_11
+  targetCompatibility = JavaVersion.VERSION_11
+
+  repositories {
+    mavenCentral()
+  }
+}
+
+java {
+  withSourcesJar()
+  withJavadocJar()
+}
+
+if (javaFxPlatform == "unspecified") {
+  switch (OperatingSystem.current()) {
+    case OperatingSystem.LINUX:
+      project.ext.javaFxPlatform = "linux"
+      break
+    case OperatingSystem.MAC_OS:
+      project.ext.javaFxPlatform = "mac"
+      break
+    case OperatingSystem.WINDOWS:
+      project.ext.javaFxPlatform = "win"
+      break
+  }
+}
+
+dependencies {
+  compileOnly 'org.projectlombok:lombok:1.18.26'
+  annotationProcessor 'org.projectlombok:lombok:1.18.26'
+
+  testCompileOnly 'org.projectlombok:lombok:1.18.26'
+  testAnnotationProcessor 'org.projectlombok:lombok:1.18.26'
+
+  api "net.java.dev.jna:jna:${jnaVersion}"
+  api "net.java.dev.jna:jna-platform:${jnaVersion}"
+  api "org.apache.logging.log4j:log4j-api:${log4j2Version}"
+
+  compileOnly "org.openjfx:javafx-base:${javaFxVersion}:${javaFxPlatform}"
+  compileOnly "org.openjfx:javafx-controls:${javaFxVersion}:${javaFxPlatform}"
+  compileOnly "org.openjfx:javafx-fxml:${javaFxVersion}:${javaFxPlatform}"
+  compileOnly "org.openjfx:javafx-graphics:${javaFxVersion}:${javaFxPlatform}"
+}
+
+publishing {
+  repositories {
+    maven {
+      name = "OSSRH"
+      setUrl("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
+      credentials {
+        username = System.getenv("OSSRH_USERNAME")
+        password = System.getenv("OSSRH_TOKEN")
+      }
+    }
+  }
+
+  publications {
+    mavenJava(MavenPublication) {
+      groupId = "io.github.micheljung"
+      artifactId 'fxstage'
+
+      from components.java
+      pom {
+        name = 'FxStage'
+        description = 'True borderless UI for JavaFX'
+        url = 'https://github.com/micheljung/fxstage'
+        licenses {
+          license {
+            name = 'GNU General Public License, Version 3.0'
+            url = 'https://www.gnu.org/licenses/gpl-3.0.html'
+          }
+        }
+        developers {
+          developer {
+            id = 'mj'
+            name = 'Michel Jung'
+            email = 'michel.jung89@gmail.com'
+          }
+        }
+        scm {
+          connection = 'scm:git:https://github.com/micheljung/fxstage.git'
+          developerConnection = 'scm:git:git@github.com:micheljung/fxstage.git'
+          url = 'https://github.com/micheljung/fxstage'
+        }
+      }
+    }
+  }
+}
+
+signing {
+  useGpgCmd()
+  sign publishing.publications.mavenJava
+}
