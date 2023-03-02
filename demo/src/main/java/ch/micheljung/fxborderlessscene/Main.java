@@ -5,6 +5,7 @@ import ch.micheljung.waitomo.WaitomoTheme;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
@@ -23,7 +24,9 @@ public class Main {
       Scene scene = primaryStage.getScene();
       WaitomoTheme.apply(scene);
       scene.getStylesheets().add(getClass().getResource("/css/window.css").toExternalForm());
-
+      Image image = new Image("/png/rts.png");
+      primaryStage.getIcons().add(image);
+      primaryStage.setTitle("Title");
       primaryStage.show();
     }
   }
